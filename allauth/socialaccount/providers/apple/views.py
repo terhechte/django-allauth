@@ -76,6 +76,7 @@ class AppleOAuth2Adapter(OAuth2Adapter):
             raise OAuth2Error("Invalid id_token") from e
 
     def parse_token(self, data):
+        print(data)
         token = SocialToken(
             token=data["access_token"],
         )
@@ -114,17 +115,24 @@ class AppleOAuth2Adapter(OAuth2Adapter):
             return {}
 
     def get_access_token_data(self, request, app, client):
+        print("get_access_token_data")
         """We need to gather the info from the apple specific login"""
         apple_session = get_apple_session(request)
+        print(apple_session)
 
+        print(request)
         # Exchange `code`
         code = get_request_param(request, "code")
+        print(code)
         pkce_code_verifier = request.session.pop("pkce_code_verifier", None)
+        print(pkce_code_verifier)
         access_token_data = client.get_access_token(
             code, pkce_code_verifier=pkce_code_verifier
         )
+        print(access_token_data)
 
         id_token = access_token_data.get("id_token", None)
+        print(id_token)
         # In case of missing id_token in access_token_data
         if id_token is None:
             id_token = apple_session.store.get("id_token")

@@ -33,6 +33,7 @@ class AppleOAuth2Client(OAuth2Client):
     """
 
     def generate_client_secret(self):
+        print("generate_client_secret")
         """Create a JWT signed with an apple provided private key"""
         now = datetime.utcnow()
         app = get_adapter(self.request).get_app(self.request, "apple")
@@ -48,10 +49,13 @@ class AppleOAuth2Client(OAuth2Client):
             "iat": now,
             "exp": now + timedelta(hours=1),
         }
+        print(claims)
         headers = {"kid": self.consumer_secret, "alg": "ES256"}
+        print(headers)
         client_secret = jwt_encode(
             payload=claims, key=certificate_key, algorithm="ES256", headers=headers
         )
+        print(client_secret)
         return client_secret
 
     def get_client_id(self):
@@ -59,8 +63,13 @@ class AppleOAuth2Client(OAuth2Client):
         return self.consumer_key.split(",")[0]
 
     def get_access_token(self, code, pkce_code_verifier=None):
+        print("get_access_token")
+        print(code)
+        print(pkce_code_verifier)
         url = self.access_token_url
+        print(url)
         client_secret = self.generate_client_secret()
+        print(client_secret)
         data = {
             "client_id": self.get_client_id(),
             "code": code,
@@ -68,18 +77,22 @@ class AppleOAuth2Client(OAuth2Client):
             "redirect_uri": self.callback_url,
             "client_secret": client_secret,
         }
+        print(data)
         if pkce_code_verifier:
             data["code_verifier"] = pkce_code_verifier
+            print(pkce_code_verifier)
         self._strip_empty_keys(data)
         resp = (
             get_adapter()
             .get_requests_session()
             .request(self.access_token_method, url, data=data, headers=self.headers)
         )
+        print(resp)
         access_token = None
         if resp.status_code in [200, 201]:
             try:
                 access_token = resp.json()
+                print(access_token)
             except ValueError:
                 access_token = dict(parse_qsl(resp.text))
         if not access_token or "access_token" not in access_token:

@@ -82,17 +82,21 @@ class AppleOAuth2Client(OAuth2Client):
             data["code_verifier"] = pkce_code_verifier
             print(pkce_code_verifier)
         self._strip_empty_keys(data)
+        print(self.access_token_method)
+        print(url)
+        print(self.headers)
+        print(get_adapter())
         resp = (
             get_adapter()
             .get_requests_session()
             .request(self.access_token_method, url, data=data, headers=self.headers)
         )
         print(resp)
+        print(resp.text)
         access_token = None
         if resp.status_code in [200, 201]:
             try:
                 access_token = resp.json()
-                print(access_token)
             except ValueError:
                 access_token = dict(parse_qsl(resp.text))
         if not access_token or "access_token" not in access_token:
